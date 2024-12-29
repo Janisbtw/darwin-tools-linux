@@ -19,12 +19,12 @@ jobs:
             name: arch
           - runner: fedora:39
             name: ubi9
-          - runner: arm64v8/ubuntu:24.04
-            name: ubuntu24.04-aarch64
-          - runner: lopsided/archlinux-arm64v8:devel
-            name: arch-aarch64
-          - runner: arm64v8/fedora:39
-            name: ubi9-aarch64
+          # - runner: arm64v8/ubuntu:24.04
+          #   name: ubuntu24.04-aarch64
+          # - runner: lopsided/archlinux-arm64v8:devel
+          #   name: arch-aarch64
+          # - runner: arm64v8/fedora:39
+          #   name: ubi9-aarch64
 
     runs-on: ubuntu-latest
     steps:
