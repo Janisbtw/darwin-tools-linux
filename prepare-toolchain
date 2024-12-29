@@ -24,22 +24,34 @@ mkdir -pv "${INSTALLPREFIX}"
 info "Building LLVM tools"
 cd "${ROOT}/apple-libtapi/"
 cmake -B build -S src/llvm \
+	-DLLVM_ENABLE_PROJECTS="tapi;clang" \
 	-DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64" \
 	-DLLVM_INCLUDE_TESTS=OFF \
 	-DLLVM_ENABLE_WARNINGS=OFF \
+	-DTAPI_FULL_VERSION="$(cat $PWD/VERSION.txt | grep "tapi" | grep -o '[[:digit:]].*')" \
 	-DCMAKE_CXX_FLAGS="-I${PWD}/src/llvm/projects/clang/include/ -I${PWD}/build/projects/clang/include/" \
-	-DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_BUILD_TYPE=MinSizeRel \
 	-DCMAKE_INSTALL_PREFIX="${INSTALLPREFIX}"
-cmake --build build --target libtapi dsymutil install-libtapi install-tapi-headers install-tapi install-dsymutil -- -j "${JOBS}"
+cmake --build build --target install-libtapi install-tapi-headers install-tapi install-dsymutil -- -j "${JOBS}"
+
+info "Building libdispatch"
+cd "${ROOT}/apple-libdispatch"
+cmake -B build \
+	-DCMAKE_BUILD_TYPE=RELEASE \
+	-DCMAKE_INSTALL_PREFIX="$INSTALLPREFIX" \
+	.
+make -j "${JOBS}" install
 
 info "Building cctools"
 cd "${ROOT}/cctools-port/cctools"
 ./configure \
 	--prefix="${INSTALLPREFIX}" \
 	--with-libtapi="${INSTALLPREFIX}" \
+	--with-libdispatch="${INSTALLPREFIX}" \
+	--with-libblocksruntime="${INSTALLPREFIX}" \
 	--target="aarch64-apple-darwin14" \
 	--program-prefix="" \
-	LDFLAGS="-Wl,-rpath,'\$\$ORIGIN/../lib' -Wl,-z,origin"
+	LDFLAGS="-Wl,-rpath,'\$\$ORIGIN/../lib' -Wl,-rpath,'\$\$ORIGIN/../lib64' -Wl,-z,origin"
 make -j "${JOBS}" \
 	PROGRAM_PREFIX="" \
 	CXXABI_LIB="-l:libc++abi.a" \
@@ -64,5 +76,4 @@ make -j "${JOBS}" \
 info "Packaging toolchain"
 mkdir -p "${PACKAGES}"
 tar -czf "${PACKAGES}/darwin-tools.tar.gz" -C "${STAGING}/prefix" linux
-
 info "Done!"
