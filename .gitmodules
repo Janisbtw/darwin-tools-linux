@@ -1,6 +1,7 @@
 [submodule "apple-libtapi"]
 	path = apple-libtapi
-	url = https://github.com/tpoechtrager/apple-libtapi.git
+	url = https://github.com/L1ghtmann/apple-libtapi.git
+	branch = tapi-link-fix
 [submodule "cctools-port"]
 	path = cctools-port
 	url = https://github.com/tpoechtrager/cctools-port.git
