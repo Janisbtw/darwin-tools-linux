@@ -42,8 +42,8 @@ jobs:
 
     - name: Build Release
       run: |
-        # No amd64 aarch64 image for Fedora so need to be explicit (breaks other distros' docker run cmds)
-        platform_flag=$(if [ "${{ matrix.name }}" = "ubi9-aarch64" ]; then echo "--platform=linux/arm64"; else echo ""; fi)
+        # No amd64 aarch64 image for Fedora/Ubuntu24.04 so need to be explicit (breaks other distros' docker run cmds)
+        platform_flag=$(if [[ "${{ matrix.name }}" = "ubi9-aarch64" || "${{ matrix.name }}" = "ubuntu24.04-aarch64" ]]; then echo "--platform=linux/arm64"; else echo ""; fi)
         docker run $platform_flag \
           --rm \
           -v /qemu-aarch64:/usr/bin/qemu-aarch64 \
