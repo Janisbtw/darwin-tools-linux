@@ -40,7 +40,7 @@ cmake -B build \
 	-DCMAKE_BUILD_TYPE=RELEASE \
 	-DCMAKE_INSTALL_PREFIX="$INSTALLPREFIX" \
 	.
-make -j "${JOBS}" install
+cmake --build build --target install
 
 info "Building cctools"
 cd "${ROOT}/cctools-port/cctools"
