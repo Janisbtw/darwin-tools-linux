@@ -13,12 +13,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: ubuntu:24.04
-            name: ubuntu24.04
-          - runner: archlinux:base-devel
-            name: arch
-          - runner: fedora:39
-            name: ubi9
+          - runner: ubuntu:22.04
+            name: ubuntu22.04
+          # - runner: archlinux:base-devel
+          #   name: arch
+          # - runner: fedora:39
+          #   name: ubi9
           # - runner: arm64v8/ubuntu:24.04
           #   name: ubuntu24.04-aarch64
           # - runner: lopsided/archlinux-arm64v8:devel
@@ -28,39 +28,39 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: true
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
 
-    - name: QEMU fix
-      run: |
-        if echo "${{ matrix.name }}" | grep "aarch64"; then
-          docker run --rm --privileged hypriot/qemu-register
-        else
-          echo "Not aarch64; no fix needed..."
-        fi
+      - name: QEMU fix
+        run: |
+          if echo "${{ matrix.name }}" | grep "aarch64"; then
+            docker run --rm --privileged hypriot/qemu-register
+          else
+            echo "Not aarch64; no fix needed..."
+          fi
 
-    - name: Build Release
-      run: |
-        # No amd64 aarch64 image for Fedora/Ubuntu24.04 so need to be explicit (breaks other distros' docker run cmds)
-        platform_flag=$(if [[ "${{ matrix.name }}" = "ubi9-aarch64" || "${{ matrix.name }}" = "ubuntu24.04-aarch64" ]]; then echo "--platform=linux/arm64"; else echo ""; fi)
-        docker run $platform_flag \
-          --rm \
-          -v /qemu-aarch64:/usr/bin/qemu-aarch64 \
-          -v $PWD:/workspace \
-          -w /workspace \
-          ${{ matrix.runner }} \
-          sh -c "
-            ./prepare-env ${{ matrix.name }}
-            CC=clang CXX=clang++ ./prepare-toolchain
-            mv packages/darwin-tools.tar.gz packages/darwin-tools-${{ matrix.name }}.tar.gz
-          "
+      - name: Build Release
+        run: |
+          # No amd64 aarch64 image for Fedora/Ubuntu24.04 so need to be explicit (breaks other distros' docker run cmds)
+          platform_flag=$(if [[ "${{ matrix.name }}" = "ubi9-aarch64" || "${{ matrix.name }}" = "ubuntu24.04-aarch64" ]]; then echo "--platform=linux/arm64"; else echo ""; fi)
+          docker run $platform_flag \
+            --rm \
+            -v /qemu-aarch64:/usr/bin/qemu-aarch64 \
+            -v $PWD:/workspace \
+            -w /workspace \
+            ${{ matrix.runner }} \
+            sh -c "
+              ./prepare-env ${{ matrix.name }}
+              CC=clang CXX=clang++ ./prepare-toolchain
+              mv packages/darwin-tools.tar.gz packages/darwin-tools-${{ matrix.name }}.tar.gz
+            "
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: DT-${{ matrix.name }}
-        path: packages/darwin-tools-${{ matrix.name }}.tar.gz
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DT-${{ matrix.name }}
+          path: packages/darwin-tools-${{ matrix.name }}.tar.gz
 
   release:
     needs: build
